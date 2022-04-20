@@ -1,0 +1,26 @@
+{
+  "name": "merge-helm-values",
+  "version": "1.0.0",
+  "description": "Github Action to merge helm values with custom values",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gpuliyar/merge-helm-values.git"
+  },
+  "keywords": [],
+  "author": "gpuliyar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gpuliyar/merge-helm-values/issues"
+  },
+  "homepage": "https://github.com/gpuliyar/merge-helm-values#readme",
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "cli-color": "^2.0.2",
+    "js-yaml": "^4.1.0",
+    "moment": "^2.29.3"
+  }
+}

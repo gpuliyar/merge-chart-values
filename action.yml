@@ -1,0 +1,23 @@
+name: Helm Values Merge
+author: gpuliyar
+description: >
+  Github custom action to merge Helm Values with custom configurations
+branding:
+  icon: code
+  color: orange
+inputs:
+  values-file:
+    description: Input Helm Chart Configuration file to deploy on a Kubernetes Cluster
+    required: true
+  repository:
+   description: The application repository name (along with owner)
+   required: true
+  image-tag:
+    description: The application container image tag
+    required: true
+outputs:
+  values-file:
+    description: Final merged Helm Chart values.yml file
+runs:
+  using: node16
+  main: dist/index.js
