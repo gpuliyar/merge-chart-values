@@ -6,15 +6,12 @@ const core = require('@actions/core');
 const main = async() => {
   try {
     const repository = core.getInput('repository', { required: true });
-    const repo = repository.split('/')[1]
     const chartTag = core.getInput('chart-tag', { required: true });
     const chart = yaml.load(fs.readFileSync("charts/Chart.yaml", 'utf8'));
-    chart.name = repo
+    chart.name = repository
     chart.description = `Application ${repo} Helm chart to deploy on Kubernetes`
     chart.version = chartTag
     fs.writeFileSync("charts/Chart.yaml", yaml.dump(chart));
-    const indentedJson = JSON.stringify(chart, null, 4);
-    console.log(clc.green(indentedJson));
   } catch(error) {
     console.log(clc.red(error));
   }
