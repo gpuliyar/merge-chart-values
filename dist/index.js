@@ -10742,7 +10742,7 @@ const main = async() => {
   try {
     const repository = core.getInput('repository', { required: true });
     const chartTag = core.getInput('chart-tag', { required: true });
-    const valuesYaml = yaml.safeLoad(fs.readFileSync("charts/Chart.yaml", 'utf8'));
+    const valuesYaml = yaml.load(fs.readFileSync("charts/Chart.yaml", 'utf8'));
     const indentedJson = JSON.stringify(config, null, 4);
     console.log(clc.green(indentedJson));
   } catch(error) {
