@@ -10751,7 +10751,7 @@ const main = async() => {
 function updateChart(repository, chartTag) {
   const chart = loadYaml("charts/Chart.yaml")
   chart.name = repository
-  chart.description = `Application ${repo} Helm chart to deploy on Kubernetes`
+  chart.description = `Application ${repository} Helm chart to deploy on Kubernetes`
   chart.version = chartTag
   writeYaml("charts/Chart.yaml", chart);
 }
