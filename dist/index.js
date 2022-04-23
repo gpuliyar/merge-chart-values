@@ -10777,6 +10777,13 @@ function updateValues(repository, chartTag, environment) {
     values.deploymentStrategy.rolling.enabled = true;
   }
 
+  values.configMap.enabled = true;
+  delete values.configMap.mountPath;
+  delete values.configMap.fileName;
+  input.environment.forEach((value, key) => {
+    values.configMap.content[key] = value;
+  });
+
   writeYaml("charts/values.yaml", values);
   const json = JSON.stringify(values, null, 4);
   console.log(clc.green(json));
