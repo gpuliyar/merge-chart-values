@@ -12,6 +12,9 @@ inputs:
   chart-tag:
     description: The application package chart tag
     required: true
+  environment:
+    description: The environment where to deploy the application
+    required: true
 outputs:
   values-file:
     description: Final merged Helm Chart values.yml file
