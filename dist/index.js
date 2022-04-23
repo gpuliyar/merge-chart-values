@@ -10778,7 +10778,8 @@ function updateValues(repository, chartTag, environment) {
   }
 
   writeYaml("charts/values.yaml", values);
-  console.log(clc.green(yaml));
+  const json = JSON.stringify(values, null, 4);
+  console.log(clc.green(json));
 }
 
 function loadYaml(file) {
