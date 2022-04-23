@@ -10778,11 +10778,9 @@ function updateValues(repository, chartTag, environment) {
   }
 
   values.configMap.enabled = true;
+  values.configMap.content = input.environment;
   delete values.configMap.mountPath;
   delete values.configMap.fileName;
-  input.environment.forEach((value, key) => {
-    values.configMap.content[key] = value;
-  });
 
   writeYaml("charts/values.yaml", values);
   const json = JSON.stringify(values, null, 4);
