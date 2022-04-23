@@ -1,5 +1,4 @@
 const fs = require('fs');
-const moment = require('moment');
 const clc = require("cli-color");
 const yaml = require('js-yaml');
 const core = require('@actions/core');
