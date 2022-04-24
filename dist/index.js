@@ -10738,7 +10738,7 @@ const clc = __nccwpck_require__(6217);
 const yaml = __nccwpck_require__(8687);
 const core = __nccwpck_require__(8864);
 
-const main = async() => {
+const main = async () => {
   try {
     // const repository = core.getInput('repository', { required: true });
     // const chartTag = core.getInput('chart-tag', { required: true });
@@ -10748,7 +10748,7 @@ const main = async() => {
     const environment = "staging";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
-  } catch(error) {
+  } catch (error) {
     console.log(clc.red(error));
   }
 }
@@ -10764,31 +10764,17 @@ function updateChart(repository, chartTag) {
 function updateValues(repository, chartTag, environment) {
   const values = loadYaml("charts/values.yaml");
   const input = loadYaml(`charts-config/values-${environment}.yaml`);
+
   values.applicationName = repository;
   values.repository = repository;
   values.tag = chartTag;
   values.imagePullPolicy = "Always";
   values.teamName = input.team;
-
-  values.deploymentStrategy = setDeploymentStrategy(input["deployment-strategy"]);
-
   values.overallTimeout = "30s";
 
-  values.configMap.enabled = true;
-  values.configMap.content = input.environment;
-  delete values.configMap.mountPath;
-  delete values.configMap.fileName;
-
-  values.externalSecrets.enabled = true;
-  values.externalSecrets.secrets[0].awsSecretName = `${repository}-${environment}-secrets`;
-  values.externalSecrets.secrets[0].config = [];
-  const secrets = loadYaml(`charts-config/${input.secrets}`);
-  for(let key in secrets.secrets) {
-    values.externalSecrets.secrets[0].config.push({
-      environmentVariableName: key,
-      key: secrets.secrets[key]
-    });
-  }
+  values.deploymentStrategy = setDeploymentStrategy(input["deployment-strategy"]);
+  values.configMap = setEnvironment(input.environment);
+  values.externalSecrets = setSecrets(repository, environment, input.secrets);
 
   values.services = [];
   input.services.forEach((service, index) => {
@@ -10816,6 +10802,32 @@ function updateValues(repository, chartTag, environment) {
   });
 
   writeYaml("charts/values.yaml", values);
+}
+
+function setEnvironment(environment) {
+  return {
+    enabled: true,
+    content: environment
+  }
+}
+
+function setSecrets(repository, environment, file) {
+  const secrets = loadYaml(`charts-config/${file}`);
+  var config = [];
+  for (let key in secrets.secrets) {
+    config.push({
+      environmentVariableName: key,
+      key: secrets.secrets[key]
+    });
+  }
+
+  return {
+    enabled: true,
+    secrets: [{
+      awsSecretName: `${repository}-${environment}-secrets`,
+      config
+    }]
+  }
 }
 
 function setDeploymentStrategy(strategy) {
@@ -10862,7 +10874,7 @@ function getMachineSize(type, environment) {
   } else if (environment == "production" && type == "standard") {
     type = "large";
   }
-  switch(type) {
+  switch (type) {
     case "xsmall":
       return .5;
     case "small":
