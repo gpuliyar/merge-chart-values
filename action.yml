@@ -15,9 +15,6 @@ inputs:
   environment:
     description: The environment where to deploy the application
     required: true
-outputs:
-  values-file:
-    description: Final merged Helm Chart values.yml file
 runs:
   using: node16
   main: dist/index.js
