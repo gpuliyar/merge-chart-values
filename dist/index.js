@@ -10819,11 +10819,10 @@ function setAutoScaling(environment, count, scale) {
 
   scale = scale || "1x";
   scale.slice(-1);
-  const scaleInt = parseFloat(scale);
+  const scaleN = parseFloat(scale);
 
   var scaleFactor = {};
-  console.log(scaleInt)
-  if (scaleInt > 1) {
+  if (scaleN > 1) {
     scaleFactor = {
       targetCPUUtilizationPercentage: 80,
       targetMemoryUtilizationPercentage: 80
@@ -10832,7 +10831,7 @@ function setAutoScaling(environment, count, scale) {
 
   return {
     minReplicas: count,
-    maxReplicas: Math.ceil(count * scaleInt),
+    maxReplicas: Math.ceil(count * scaleN),
     ...scaleFactor
   }
 }
