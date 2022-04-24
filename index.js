@@ -66,12 +66,40 @@ function setServices(repository, environment, input) {
 
     const machineSize = getMachineSize(service.machine?.type || "standard", environment);
     services[index].resources = getResources(machineSize);
+    services[index].autoScaling = setAutoScaling(environment, service.machine?.count, service.machine?.scale);
 
     services[index].replicaCount = 1;
     services[index].maxUnavailable = 0;
   });
 
   return services;
+}
+
+function setAutoScaling(environment, count, scale) {
+  if (environment == "staging") {
+    count = count || 1;
+  } else {
+    count = count || 2;
+  }
+
+  scale = scale || "1x";
+  scale.slice(-1);
+  const scaleInt = parseFloat(scale);
+
+  var scaleFactor = {};
+  console.log(scaleInt)
+  if (scaleInt > 1) {
+    scaleFactor = {
+      targetCPUUtilizationPercentage: 80,
+      targetMemoryUtilizationPercentage: 80
+    };
+  }
+
+  return {
+    minReplicas: count,
+    maxReplicas: Math.ceil(count * scaleInt),
+    ...scaleFactor
+  }
 }
 
 function setEnvironment(environment) {
