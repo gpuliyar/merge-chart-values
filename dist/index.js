@@ -10740,12 +10740,12 @@ const core = __nccwpck_require__(8864);
 
 const main = async () => {
   try {
-    // const repository = core.getInput('repository', { required: true });
-    // const chartTag = core.getInput('chart-tag', { required: true });
-    // const environment = core.getInput('environment', { required: true });
-    const repository = "infra-helloworld";
-    const chartTag = "0.0.1";
-    const environment = "staging";
+    const repository = core.getInput('repository', { required: true });
+    const chartTag = core.getInput('chart-tag', { required: true });
+    const environment = core.getInput('environment', { required: true });
+    // const repository = "infra-helloworld";
+    // const chartTag = "0.0.1";
+    // const environment = "staging";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
   } catch (error) {
@@ -10932,7 +10932,7 @@ function loadYaml(file) {
 function writeYaml(file, data) {
   const yamlOp = yaml.dump(data);
   console.log(clc.yellow(yamlOp));
-  // fs.writeFileSync(file, yamlOp);
+  fs.writeFileSync(file, yamlOp);
 }
 
 main();
