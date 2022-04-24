@@ -10770,15 +10770,7 @@ function updateValues(repository, chartTag, environment) {
   values.imagePullPolicy = "Always";
   values.teamName = input.team;
 
-  if (input["deployment-strategy"] == "blue-green") {
-    values.deploymentStrategy.blueGreen.enabled = true;
-    values.deploymentStrategy.blueGreen.autoPromotionEnabled = false;
-    values.deploymentStrategy.blueGreen.maxUnavailable = 0;
-    values.deploymentStrategy.rolling.enabled = false;
-  } else if (input["deployment-strategy"] == "rolling") {
-    values.deploymentStrategy.blueGreen.enabled = false;
-    values.deploymentStrategy.rolling.enabled = true;
-  }
+  values.deploymentStrategy = setDeploymentStrategy(input["deployment-strategy"]);
 
   values.overallTimeout = "30s";
 
@@ -10824,6 +10816,30 @@ function updateValues(repository, chartTag, environment) {
   });
 
   writeYaml("charts/values.yaml", values);
+}
+
+function setDeploymentStrategy(strategy) {
+  if (strategy == "blue-green") {
+    return {
+      blueGreen: {
+        enabled: true,
+        autoPromotionEnabled: false,
+        maxUnavailable: 0
+      },
+      rolling: {
+        enabled: false
+      }
+    }
+  } else if (strategy == "rolling") {
+    return {
+      blueGreen: {
+        enabled: false
+      },
+      rolling: {
+        enabled: true
+      }
+    }
+  }
 }
 
 function getResources(size) {
