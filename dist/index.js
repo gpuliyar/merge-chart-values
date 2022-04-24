@@ -10775,33 +10775,38 @@ function updateValues(repository, chartTag, environment) {
   values.deploymentStrategy = setDeploymentStrategy(input["deployment-strategy"]);
   values.configMap = setEnvironment(input.environment);
   values.externalSecrets = setSecrets(repository, environment, input.secrets);
+  values.services = setServices(repository, environment, input);
 
-  values.services = [];
+  writeYaml("charts/values.yaml", values);
+}
+
+function setServices(repository, environment, input) {
+  var services = [];
   input.services.forEach((service, index) => {
-    values.services.push({
+    services.push({
       name: `${repository}-${service.type}-${index + 1}`,
     })
 
     if (service.type == "web") {
-      values.services[index].ports = service.ports
+      services[index].ports = service.ports
     }
 
     if (service.args) {
-      values.services[index].args = service.args
+      services[index].args = service.args
     }
 
     if (service.command) {
-      values.services[index].command = service.command
+      services[index].command = service.command
     }
 
     const machineSize = getMachineSize(service.machine?.type || "standard", environment);
-    values.services[index].resources = getResources(machineSize);
+    services[index].resources = getResources(machineSize);
 
-    values.services[index].replicaCount = 1;
-    values.services[index].maxUnavailable = 0;
+    services[index].replicaCount = 1;
+    services[index].maxUnavailable = 0;
   });
 
-  writeYaml("charts/values.yaml", values);
+  return services;
 }
 
 function setEnvironment(environment) {
@@ -10851,6 +10856,8 @@ function setDeploymentStrategy(strategy) {
         enabled: true
       }
     }
+  } else {
+    throw new Error("Unsupported deployment strategy");
   }
 }
 
