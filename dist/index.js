@@ -10803,6 +10803,16 @@ function setServices(repository, environment, input) {
     services[index].resources = getResources(machineSize);
     services[index].autoScaling = setAutoScaling(environment, service.machine?.count, service.machine?.scale);
 
+    if (service.type == "web") {
+      services[index].ingress = {
+        gateway: "istio-system/istio-gateway",
+        hostname: `${repository}.k8s.envoy.${environment == "staging" ? "christmas" : "com"}`,
+      }
+      if (input["deployment-strategy"] == "blue-green") {
+        services[index].ingress.testHostname = `${repository}-test.k8s.envoy.${environment == "staging" ? "christmas" : "com"}`;
+      }
+    }
+
     services[index].replicaCount = 1;
     services[index].maxUnavailable = 0;
   });
@@ -10929,9 +10939,7 @@ function loadYaml(file) {
 }
 
 function writeYaml(file, data) {
-  const yamlOp = yaml.dump(data);
-  console.log(clc.yellow(yamlOp));
-  fs.writeFileSync(file, yamlOp);
+  fs.writeFileSync(file, yaml.dump(data));
 }
 
 main();
