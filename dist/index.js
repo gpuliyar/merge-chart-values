@@ -10816,17 +10816,11 @@ function updateValues(repository, chartTag, environment) {
       values.services[index].command = service.command
     }
 
-    var machineSize = 0
-    if (service.machine) {
-      if (service.machine.type) {
-        machineSize = getMachineSize(service.machine.type, environment);
-      } else {
-        machineSize = getMachineSize("standard", environment);
-      }
-    } else {
-      machineSize = getMachineSize("standard", environment);
-    }
+    const machineSize = getMachineSize(service.machine?.type || "standard", environment);
     values.services[index].resources = getResources(machineSize);
+
+    values.services[index].replicaCount = 1;
+    values.services[index].maxUnavailable = 0;
   });
 
   writeYaml("charts/values.yaml", values);
@@ -10846,6 +10840,7 @@ function getResources(size) {
 }
 
 function getMachineSize(type, environment) {
+  type = type || "standard";
   if (environment == "staging" && type == "standard") {
     type = "small";
   } else if (environment == "production" && type == "standard") {
@@ -10862,6 +10857,8 @@ function getMachineSize(type, environment) {
       return 4;
     case "xlarge":
       return 8;
+    default:
+      throw new Error("Invalid machine type");
   }
 }
 
