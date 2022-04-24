@@ -29,7 +29,7 @@ function updateChart(repository, chartTag) {
 function updateValues(repository, chartTag, environment) {
   const values = loadYaml("charts/values.yaml");
   const input = loadYaml(`charts-config/values-${environment}.yaml`);
-  values.applicatioName = repository;
+  values.applicationName = repository;
   values.repository = repository;
   values.tag = chartTag;
   values.imagePullPolicy = "Always";
@@ -70,6 +70,7 @@ function loadYaml(file) {
 
 function writeYaml(file, data) {
   const yamlOp = yaml.dump(data);
+  // console.log(clc.green(yamlOp));
   fs.writeFileSync(file, yamlOp);
 }
 
