@@ -5,9 +5,12 @@ const core = require('@actions/core');
 
 const main = async() => {
   try {
-    const repository = core.getInput('repository', { required: true });
-    const chartTag = core.getInput('chart-tag', { required: true });
-    const environment = core.getInput('environment', { required: true });
+    // const repository = core.getInput('repository', { required: true });
+    // const chartTag = core.getInput('chart-tag', { required: true });
+    // const environment = core.getInput('environment', { required: true });
+    const repository = "infra-helloworld";
+    const chartTag = "0.0.1";
+    const environment = "staging";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
   } catch(error) {
@@ -47,9 +50,18 @@ function updateValues(repository, chartTag, environment) {
   delete values.configMap.mountPath;
   delete values.configMap.fileName;
 
+  values.overallTimeout = "30s";
+
+  values.externalSecrets.enabled = true;
+  values.externalSecrets.secrets[0].awsSecretName = `${repository}-secrets`;
+  values.externalSecrets.secrets[0].config = [];
+  for(let key in input.secrets) {
+    values.externalSecrets.secrets[0].config.push({
+      environmentVariableName: key,
+      key: input.secrets[key]
+    });
+  }
   writeYaml("charts/values.yaml", values);
-  const json = JSON.stringify(values, null, 4);
-  console.log(clc.green(json));
 }
 
 function loadYaml(file) {
@@ -57,7 +69,8 @@ function loadYaml(file) {
 }
 
 function writeYaml(file, data) {
-  fs.writeFileSync(file, yaml.dump(data));
+  const yamlOp = yaml.dump(data);
+  fs.writeFileSync(file, yamlOp);
 }
 
 main();
