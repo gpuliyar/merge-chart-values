@@ -10756,7 +10756,7 @@ const main = async() => {
 function updateChart(repository, chartTag) {
   const chart = loadYaml("charts/Chart.yaml");
   chart.name = repository;
-  chart.description = `Application ${repository} Helm chart to deploy on Kubernetes`;
+  chart.description = `${repository} application helm chart to deploy on Kubernetes cluster`;
   chart.version = chartTag;
   writeYaml("charts/Chart.yaml", chart);
 }
@@ -10780,23 +10780,89 @@ function updateValues(repository, chartTag, environment) {
     values.deploymentStrategy.rolling.enabled = true;
   }
 
+  values.overallTimeout = "30s";
+
   values.configMap.enabled = true;
   values.configMap.content = input.environment;
   delete values.configMap.mountPath;
   delete values.configMap.fileName;
 
-  values.overallTimeout = "30s";
-
   values.externalSecrets.enabled = true;
-  values.externalSecrets.secrets[0].awsSecretName = `${repository}-secrets`;
+  values.externalSecrets.secrets[0].awsSecretName = `${repository}-${environment}-secrets`;
   values.externalSecrets.secrets[0].config = [];
-  for(let key in input.secrets) {
+  const secrets = loadYaml(`charts-config/${input.secrets}`);
+  for(let key in secrets.secrets) {
     values.externalSecrets.secrets[0].config.push({
       environmentVariableName: key,
-      key: input.secrets[key]
+      key: secrets.secrets[key]
     });
   }
+
+  values.services = [];
+  input.services.forEach((service, index) => {
+    values.services.push({
+      name: `${repository}-${service.type}-${index + 1}`,
+    })
+
+    if (service.type == "web") {
+      values.services[index].ports = service.ports
+    }
+
+    if (service.args) {
+      values.services[index].args = service.args
+    }
+
+    if (service.command) {
+      values.services[index].command = service.command
+    }
+
+    var machineSize = 0
+    if (service.machine) {
+      if (service.machine.type) {
+        machineSize = getMachineSize(service.machine.type, environment);
+      } else {
+        machineSize = getMachineSize("standard", environment);
+      }
+    } else {
+      machineSize = getMachineSize("standard", environment);
+    }
+    values.services[index].resources = getResources(machineSize);
+  });
+
   writeYaml("charts/values.yaml", values);
+}
+
+function getResources(size) {
+  return {
+    limits: {
+      cpu: `${1000 * size}m`,
+      memory: `${2 * size}Gi`
+    },
+    requests: {
+      cpu: `${1000 * size}m`,
+      memory: `${2 * size}Gi`
+    }
+  }
+}
+
+function getMachineSize(type, environment) {
+  if (environment == "staging" && type == "standard") {
+    type = "small";
+  } else if (environment == "production" && type == "standard") {
+    type = "large";
+  }
+  switch(type) {
+    case "xsmall":
+      return .5;
+    case "small":
+      return 1;
+    case "medium":
+      return 2;
+    case "large":
+      return 4;
+    case "xlarge":
+      return 8;
+  }
 }
 
 function loadYaml(file) {
@@ -10805,8 +10871,8 @@ function loadYaml(file) {
 
 function writeYaml(file, data) {
   const yamlOp = yaml.dump(data);
-  // console.log(clc.green(yamlOp));
-  fs.writeFileSync(file, yamlOp);
+  console.log(clc.yellow(yamlOp));
+  // fs.writeFileSync(file, yamlOp);
 }
 
 main();
