@@ -16936,12 +16936,12 @@ const mergeYaml = __nccwpck_require__(5427);
 
 const main = async () => {
   try {
-    // const repository = core.getInput('repository', { required: true });
-    // const chartTag = core.getInput('chart-tag', { required: true });
-    // const environment = core.getInput('environment', { required: true });
-    const repository = "infra-helloworld";
-    const chartTag = "0.0.1";
-    const environment = "production";
+    const repository = core.getInput('repository', { required: true });
+    const chartTag = core.getInput('chart-tag', { required: true });
+    const environment = core.getInput('environment', { required: true });
+    // const repository = "infra-helloworld";
+    // const chartTag = "0.0.1";
+    // const environment = "staging";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
   } catch (error) {
@@ -17043,11 +17043,11 @@ function setAutoScaling(environment, count, scale) {
 }
 
 function setEnvironment(environment, environmentFiles) {
-  var envs = {}
   if (environmentFiles) {
-    const mergedYamlEnvs = mergeYaml(environmentFiles);
-    console.log(mergedYamlEnvs);
+    const envFiles = environmentFiles.map(file => `deploy-config/${file}`);
+    environment = Object.assign(environment, ...envFiles.map(file => loadYaml(file)));
   }
+
   return {
     enabled: true,
     content: environment
