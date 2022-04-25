@@ -2,15 +2,16 @@ const fs = require('fs');
 const clc = require("cli-color");
 const yaml = require('js-yaml');
 const core = require('@actions/core');
+const mergeYaml = require('merge-yaml');
 
 const main = async () => {
   try {
-    const repository = core.getInput('repository', { required: true });
-    const chartTag = core.getInput('chart-tag', { required: true });
-    const environment = core.getInput('environment', { required: true });
-    // const repository = "infra-helloworld";
-    // const chartTag = "0.0.1";
-    // const environment = "production";
+    // const repository = core.getInput('repository', { required: true });
+    // const chartTag = core.getInput('chart-tag', { required: true });
+    // const environment = core.getInput('environment', { required: true });
+    const repository = "infra-helloworld";
+    const chartTag = "0.0.1";
+    const environment = "production";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
   } catch (error) {
@@ -28,7 +29,7 @@ function updateChart(repository, chartTag) {
 
 function updateValues(repository, chartTag, environment) {
   const values = loadYaml("charts/values.yaml");
-  const input = loadYaml(`charts-config/values-${environment}.yaml`);
+  const input = loadYaml(`deploy-config/values-${environment}.yaml`);
 
   values.applicationName = repository;
   values.repository = repository;
@@ -38,8 +39,8 @@ function updateValues(repository, chartTag, environment) {
   values.overallTimeout = "30s";
 
   values.deploymentStrategy = setDeploymentStrategy(input["deployment-strategy"]);
-  values.configMap = setEnvironment(input.environment);
-  values.externalSecrets = setSecrets(repository, environment, input.secrets);
+  values.configMap = setEnvironment(input.environment, input["environment-files"]);
+  values.externalSecrets = setSecrets(input.team, repository, input.secrets);
   values.services = setServices(repository, environment, input);
 
   writeYaml("charts/values.yaml", values);
@@ -111,15 +112,20 @@ function setAutoScaling(environment, count, scale) {
   }
 }
 
-function setEnvironment(environment) {
+function setEnvironment(environment, environmentFiles) {
+  var envs = {}
+  if (environmentFiles) {
+    const mergedYamlEnvs = mergeYaml(environmentFiles);
+    console.log(mergedYamlEnvs);
+  }
   return {
     enabled: true,
     content: environment
   }
 }
 
-function setSecrets(repository, environment, file) {
-  const secrets = loadYaml(`charts-config/${file}`);
+function setSecrets(team, repository, file) {
+  const secrets = loadYaml(`deploy-config/${file}`);
   var config = [];
   secrets.secrets.forEach(secret => {
     config.push({
@@ -131,10 +137,10 @@ function setSecrets(repository, environment, file) {
   return {
     enabled: true,
     secrets: [{
-      awsSecretName: `${repository}-${environment}-secrets`,
+      awsSecretName: `${team}-${repository}`,
       config
     }]
-  }
+  };
 }
 
 function setDeploymentStrategy(strategy) {
@@ -148,7 +154,7 @@ function setDeploymentStrategy(strategy) {
       rolling: {
         enabled: false
       }
-    }
+    };
   } else if (strategy == "rolling") {
     return {
       blueGreen: {
@@ -157,7 +163,7 @@ function setDeploymentStrategy(strategy) {
       rolling: {
         enabled: true
       }
-    }
+    };
   } else {
     throw new Error("Unsupported deployment strategy");
   }
@@ -173,7 +179,7 @@ function getResources(size) {
       cpu: `${1000 * size}m`,
       memory: `${2 * size}Gi`
     }
-  }
+  };
 }
 
 function getMachineSize(type, environment) {

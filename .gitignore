@@ -103,4 +103,4 @@ typings/
 # TernJS port file
 .tern-port
 charts/
-charts-config/
+deploy-config/
