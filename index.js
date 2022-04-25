@@ -10,7 +10,7 @@ const main = async () => {
     const environment = core.getInput('environment', { required: true });
     // const repository = "infra-helloworld";
     // const chartTag = "0.0.1";
-    // const environment = "staging";
+    // const environment = "production";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
   } catch (error) {
@@ -121,12 +121,12 @@ function setEnvironment(environment) {
 function setSecrets(repository, environment, file) {
   const secrets = loadYaml(`charts-config/${file}`);
   var config = [];
-  for (let key in secrets.secrets) {
+  secrets.secrets.forEach(secret => {
     config.push({
-      environmentVariableName: key,
-      key: secrets.secrets[key]
+      environmentVariableName: secret,
+      key: secret
     });
-  }
+  });
 
   return {
     enabled: true,
@@ -204,6 +204,8 @@ function loadYaml(file) {
 }
 
 function writeYaml(file, data) {
+  const yamlData = yaml.dump(data);
+  console.log(clc.yellow(yamlData));
   fs.writeFileSync(file, yaml.dump(data));
 }
 
