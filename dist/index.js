@@ -16939,9 +16939,6 @@ const main = async () => {
     const repository = core.getInput('repository', { required: true });
     const chartTag = core.getInput('chart-tag', { required: true });
     const environment = core.getInput('environment', { required: true });
-    // const repository = "infra-helloworld";
-    // const chartTag = "0.0.1";
-    // const environment = "staging";
     updateChart(repository, chartTag);
     updateValues(repository, chartTag, environment);
   } catch (error) {
@@ -17074,28 +17071,29 @@ function setSecrets(team, repository, file) {
 }
 
 function setDeploymentStrategy(strategy) {
-  if (strategy == "blue-green") {
-    return {
-      blueGreen: {
-        enabled: true,
-        autoPromotionEnabled: false,
-        maxUnavailable: 0
-      },
-      rolling: {
-        enabled: false
-      }
-    };
-  } else if (strategy == "rolling") {
-    return {
-      blueGreen: {
-        enabled: false
-      },
-      rolling: {
-        enabled: true
-      }
-    };
-  } else {
-    throw new Error("Unsupported deployment strategy");
+  switch(strategy) {
+    case "blue-green":
+      return {
+        blueGreen: {
+          enabled: true,
+          autoPromotionEnabled: false,
+          maxUnavailable: 0
+        },
+        rolling: {
+          enabled: false
+        }
+      };
+    case "rolling":
+      return {
+        blueGreen: {
+          enabled: false
+        },
+        rolling: {
+          enabled: true
+        }
+      };
+    default:
+      throw new Error("Unsupported deployment strategy");
   }
 }
 
@@ -17140,8 +17138,6 @@ function loadYaml(file) {
 }
 
 function writeYaml(file, data) {
-  const yamlData = yaml.dump(data);
-  console.log(clc.yellow(yamlData));
   fs.writeFileSync(file, yaml.dump(data));
 }
 
